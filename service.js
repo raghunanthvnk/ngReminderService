@@ -17,6 +17,10 @@ var multer  = require('multer');
 var fs = require('fs');
 var upload = multer({ dest: 'upload/'});
 
+
+// ref:: https://stackoverflow.com/questions/30859901/parse-xlsx-with-node-and-create-json/40292005#40292005
+var XLSX = require('xlsx');
+
    
 
 var transform= require('./RemindersDataService.js')
@@ -29,12 +33,13 @@ var config = {
     user: 'sa',
     password: 'psi'
 };
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
+app.use(function(req, res, next) { //allow cross origin requests
+    res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
+    res.header("Access-Control-Allow-Origin", "http://localhost:4200");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Credentials", true);
     next();
 });
-
 
 
 app.get('/serviceline_dtl', function (req, res) {
@@ -284,13 +289,17 @@ app.use(bodyParser.json());
          });
 
 });
+
+
+                                      /** Upload code */
+
 var storage = multer.diskStorage({ //multers disk storage settings
     destination: function (req, file, cb) {
         cb(null, './uploads/');
     },
     filename: function (req, file, cb) {
         var datetimestamp = Date.now();
-        cb(null, file.fieldname + '-' + datetimestamp + '.' + file.originalname.split('.')[file.originalname.split('.').length -1]);
+        cb(null, file.originalname);
     }
 });
 
@@ -306,7 +315,12 @@ app.post('/upload', function(req, res) {
              res.json({error_code:1,err_desc:err});
              return;
         }
-         res.json({error_code:0,err_desc:null});
+        // read data from a file and send response
+        var workbook = XLSX.readFile('./uploads/'+req.file.originalname);
+        var sheet_name_list = workbook.SheetNames;
+        var data= XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+        res.send(data);
+        //  res.json({error_code:0,err_desc:null});
     });
 });
 
@@ -328,6 +342,45 @@ app.get('/api/RemindersData', function (req, res) {
           request.output('po_Message',sql.VarChar)
           // query to the database and get the records
           request.execute("[dbo].[ARA_SP_DS_GetAllQualityRemindersData]").then(function(recordSet) {
+              if (recordSet == null || recordSet.length === 0)
+                  return;
+             
+             // res.send(recordset);
+              data=recordSet.recordsets;
+              res.send(JSON.stringify(data));
+              console.log(data);
+              sql.close();
+          }).catch(function (err) {         
+              console.log(err);
+              sql.close();
+          });
+      });
+     
+  });
+
+  
+app.get('/api/upload/getProjectMaster', function (req, res) {
+    // connect to your database
+
+    var Flag = req.param('Flag');
+    var project_code = req.param('project_code');
+
+    sql.close();
+    sql.connect(config, function (err) {
+      
+          if (err) console.log(err);
+          // create Request object
+          var request = new sql.Request();
+          request.input('p_Flag', sql.VarChar, Flag)
+          request.input('p_ProjectCode', sql.VarChar, project_code)
+          request.input('p_TimeStamp', sql.Int,0)
+          
+          request.output('po_Retval',sql.Int)
+          request.output('po_UpdatedBy',sql.VarChar)
+          request.output('po_UpdatedTime',sql.DateTime)
+          request.output('po_Message',sql.VarChar)
+          // query to the database and get the records
+          request.execute("[dbo].[ARA_SP_DS_GetProjectMaster]").then(function(recordSet) {
               if (recordSet == null || recordSet.length === 0)
                   return;
              
