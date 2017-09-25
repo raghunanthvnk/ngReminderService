@@ -397,6 +397,80 @@ app.get('/api/upload/getProjectMaster', function (req, res) {
      
   });
 
+  app.post('/api/upload/UpdateQualityExcel',function(req,res){
+  
+     UpdateQualityExcel_Flag = req.param('Flag');
+    
+     body_data=req.body;
+
+     UpdateQualityExcel_res_data=[];
+
+    //  connect to your database
+    sql.close();
+    sql.connect(config, function (err) {
+        
+    if (err) console.log(err);
+
+    var i=1;
+    // for(var i=0;i<body_data.EXCEL_ROWS.length;i++)
+    // {
+                     console.log(i);
+                    //create Request object
+                    var request = new sql.Request();
+
+                    request.input('p_Flag', sql.VarChar, UpdateQualityExcel_Flag)
+                    request.input('p_ProjectCode', sql.NVarChar, body_data.EXCEL_ROWS[i].PROJECT_CODE);
+                    request.input('p_ActivityId',sql.INT,body_data.EXCEL_ROWS[i].ACTIVITY_ID);
+                    request.input('p_ActivityName', sql.VarChar, body_data.EXCEL_ROWS[i].ACTIVITY_NAME);
+                    request.input('p_ModuleName', sql.VarChar, body_data.EXCEL_ROWS[i].MODULE_NAME);
+                    request.input('p_MitsEmailId',sql.VarChar, body_data.EXCEL_ROWS[i].MITS_QUALITY_EMAIL_ID);
+                    request.input('p_RespName', sql.NVarChar, body_data.EXCEL_ROWS[i].RESPONSIBLE)
+                    request.input('p_RespEmailId',sql.VarChar,body_data.EXCEL_ROWS[i].RESPONSIBLE_PERSON_EMAIL_ID);
+                    request.input('p_RespNtid',sql.VarChar,body_data.EXCEL_ROWS[i].RESPONSIBLE_PERSON_NTID);
+                    request.input('p_ExpectedDate', sql.DateTime ,new Date(body_data.EXCEL_ROWS[i].EXPECTED_CLOSURE_DATE));
+                    request.input('p_ActualDate', sql.DateTime, null //new Date(body_data.EXCEL_ROWS[i].ACTUAL_CLOSURE_DATE)
+                    );
+                    request.input('p_ReminderActive', sql.Int,body_data.EXCEL_ROWS[i].REMINDER_ACTIVE)
+                    request.input('p_Status',sql.VarChar,body_data.EXCEL_ROWS[i].STATUS);
+                    request.input('p_Comments',sql.VarChar,body_data.EXCEL_ROWS[i].COMMENTS);
+                    request.input('p_PassFail',sql.VarChar,body_data.EXCEL_ROWS[i].PASSFAIL);
+                    request.input('p_Theme', sql.NVarChar, body_data.EXCEL_ROWS[i].THEME);
+                
+                    request.output('po_Retval',sql.Int)
+                    request.input('p_TimeStamp', sql.Int, 0);
+                    request.output('po_UpdatedBy',sql.VarChar)
+                    request.output('po_UpdatedTime',sql.DateTime)
+                    request.output('po_Message',sql.VarChar)
+                    request.output('po_ActivityClosed',sql.INT)
+                    // query to the database and get the records
+                    request.execute("[dbo].[ARA_SP_ACTION_QualityExcelUpdate]").then(function(recordSet) {
+                        console.log(request.parameters.po_ActivityClosed.value)
+                        console.log(request.parameters.po_Message.value)
+                       
+                        if (recordSet == null || recordSet.length === 0)
+                            return;
+                        
+                        // res.send(recordset);
+                        
+                        
+                        // body_data.EXCEL_ROWS[i].DATABASE_MESSAGE=request.parameters.po_Message.value;
+                        // body_data.EXCEL_ROWS[i].SC_ACTIVITY_CLOSED_TODAY=request.parameters.po_ActivityClosed.value;
+                        // data=recordSet.recordsets;
+                        // console/log(data)
+                        //  res.send(JSON.stringify(data));
+                        // console.log(body_data.EXCEL_ROWS[i]);
+                        // UpdateQualityExcel_res_data.push(body_data.EXCEL_ROWS[i]);
+
+                        // sql.close();
+                    }).catch(function (err) {         
+                        console.log(err);
+                        
+                    });
+
+                // }
+         });
+});
+
 var server = app.listen(5000, function () {
     console.log('Server is running..');
 });
