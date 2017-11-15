@@ -1,5 +1,5 @@
 {
- "main": "server.js",
+ "main": "service.js",
  "dependencies": {
   "async": "^2.5.0",
   "body-parser": "^1.17.2",
@@ -17,6 +17,7 @@
   "xlsx": "^0.11.4"
  },
  "scripts": {
-  "start": "node server.js"
+  "start": "node service.js"
  }
 }
+
