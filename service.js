@@ -27,6 +27,9 @@ var async= require('async');
 var nodemailer  = require('./nodemailer.js');
 
 
+//var nodemailer  = require('./authenticate.js');
+
+
 var data;
 // var config = {
 //     server: 'INBGMW-C037',
@@ -522,8 +525,51 @@ function Postdata(UpdateQualityExcel_Flag, EXCEL_ROWS,i, cb) {
     // });
 }
 
-var server = app.listen(5000, function () {
-    console.log('Server is running..');
+
+                             //Authentication
+
+app.post('/api/authenticate', function (req, res) {
+
+      // connect to your database
+
+      console.log(req);
+
+      sql.close();
+      sql.connect(config, function (err) {
+        
+            if (err) console.log(err);
+            console.log(req.body.username);
+            // create Request object
+            var request = new sql.Request();
+            request.input('UserName', sql.VarChar, req.body.username)
+            request.input('Password', sql.VarChar, req.body.password)
+            
+            // query to the database and get the records
+            request.execute("[admin].[check_user]").then(function(recordSet) {
+                if (recordSet == null || recordSet.length === 0)
+                    return;
+               
+               // res.send(recordset);
+                data=recordSet.recordsets;
+    
+                
+                res.send(JSON.stringify(data));
+                console.log(data);
+                sql.close();
+            }).catch(function (err) {         
+                console.log(err);
+                sql.close();
+            });
+        });
+    
+     
+  });
+
+var server = app.listen(5000, function (req,res) {
+
+   
+   
+    console.log('Server is running at port 5000..');
 });
 
 

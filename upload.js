@@ -24,11 +24,12 @@ var XLSX = require('xlsx');
 
 var data;
 var config = {
-    server: 'INBGMW-C037',
-    database: 'MinacsInvoiceReminders',
-    user: 'sa',
-    password: 'psi'
+    server: 'fh-mmsts01',
+    database: 'reminder_tool',
+    user: 'mmsdev.ts',
+    password: 'springweb123!'
 };
+
 
 app.use(function(req, res, next) { //allow cross origin requests
     res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
