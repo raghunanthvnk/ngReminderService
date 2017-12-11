@@ -13,10 +13,6 @@ var router = express.Router();
 // npm install msnodesqlv8
 var sql = require('mssql');
 
-//npm install multer
-var multer  = require('multer');
-var fs = require('fs');
-var upload = multer({ dest: 'upload/'});
 
 
 // ref:: https://stackoverflow.com/questions/30859901/parse-xlsx-with-node-and-create-json/40292005#40292005
@@ -25,6 +21,11 @@ var XLSX = require('xlsx');
 var async= require('async');
 
 var nodemailer  = require('./nodemailer.js');
+
+var multer  = require('multer');
+var fs = require('fs');
+var upload = multer({ dest: 'upload/'});
+
 
 
 //var nodemailer  = require('./authenticate.js');
@@ -54,259 +55,13 @@ app.use(function(req, res, next) { //allow cross origin requests
     next();
 });
 
-
-app.get('/serviceline_dtl', function (req, res) {
-  // connect to your database
-  sql.close();
-  sql.connect(config, function (err) {
-    
-        if (err) console.log(err);
-        // create Request object
-        var request = new sql.Request();
-        request.input('p_Flag', sql.VarChar, "ALL_SERVICE_LINE")
-        request.output('po_Retval',sql.Int)
-        request.output('po_UpdatedBy',sql.VarChar)
-        request.output('po_UpdatedTime',sql.DateTime)
-        request.output('po_Message',sql.VarChar)
-        // query to the database and get the records
-        request.execute("[dbo].[ARA_SP_DS_GetAllSLDetails]").then(function(recordSet) {
-            if (recordSet == null || recordSet.length === 0)
-                return;
-           
-           // res.send(recordset);
-            data=recordSet.recordsets;
-            res.send(JSON.stringify(data));
-            console.log(data);
-            sql.close();
-        }).catch(function (err) {         
-            console.log(err);
-            sql.close();
-        });
-    });
-   
-});
-
-
-app.get('/project_codes_dtl', function (req, res) {
-    var ServiceLine = req.param('ServiceLine');
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_Flag', sql.VarChar, "ALL_PROJECT_MASTER")
-          request.input('P_ServiceLine', sql.VarChar, ServiceLine)
-          request.input('P_ProjectCode', sql.VarChar, "dummy")
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetAllProjectMasterDetails]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-              console.log(recordSet.recordsets);
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
-});
-
-//http://localhost:5000/ActivityNames_Get
-app.get('/ActivityNames_Get', function (req, res) {
+app.get('/testapi', function (req, res) {
     // connect to your database
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_ModuleName', sql.VarChar, "Spot Check Status")
-          request.input('p_Mode', sql.NVarChar, "dummy")
-          request.input('p_Flag', sql.NVarChar, "dummy")
-          request.input('p_TimeStamp', sql.Int, 0)
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetActivityTypes]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-             
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              console.log(data);
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
+   
+   res.end("Test Works!");
      
   });
-  
-  app.get('/SUBACTIVITY_GET', function (req, res) {
-    var ActivityName = req.param('ActivityName');
-    var projectCode = req.param('Project_code');
-    
-  
-    // connect to your database
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_Flag', sql.VarChar, "GET_SUBACTIVITY_FOR_PROJECT")
-          request.input('p_ProjectCode', sql.NVarChar, projectCode)
-          request.input('p_ActivityName', sql.NVarChar, ActivityName)
-         // request.input('p_ExpectedDate', sql.DateTime,"09-09-1989")
-          request.input('p_ActivityID',sql.VarChar,"dummy");
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetAllSpotCheckDetailsForAProject1]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-             
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              console.log(data);
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
-     
-  });
-
-  app.get('/SpotCheckDetailsforProject_GET', function (req, res) {
-    var ActivityId = req.param('ActivityId');
-  
-    // connect to your database
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_Flag', sql.VarChar, "GET_SC_DETAILS_FOR_PROJECT")
-          request.input('p_ProjectCode', sql.NVarChar, "dummy");
-          request.input('p_ActivityName', sql.NVarChar, "dummy")
-        //  request.input('p_ExpectedDate', sql.DateTime,"09-09-2018")
-          request.input('p_ActivityID',sql.VarChar,ActivityId);
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetAllSpotCheckDetailsForAProject1]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-             
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              console.log(data);
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
-     
-  });
-  
-/** bodyParser.urlencoded(options)
- * Parses the text as URL encoded data (which is how browsers tend to send form data from regular forms set to POST)
- * and exposes the resulting object (containing the keys and values) on req.body
- */
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-
-/**bodyParser.json(options)
- * Parses the text as JSON and exposes the resulting object on req.body.
- */
-app.use(bodyParser.json());
-  app.post('/api/UpdateSpotCheckDetails',function(req,res){
-    
-    
-
-    var mode = req.param('mode');
-    var ProjectCode = req.param('ProjectCode');
-    var body_data=req.body;
-
-   
-   
-    console.log(new Date(body_data.spot_check_details.EXPECTED_CLOSURE_DATE))
-       
-    console.log(new Date(body_data.spot_check_details.ACTUAL_CLOSURE_DATE))
-
-       // connect to your database
-       sql.close();
-       sql.connect(config, function (err) {
-         
-             if (err) console.log(err);
-             // create Request object
-             
-             var request = new sql.Request();
-             request.input('p_mode', sql.VarChar, mode)
-             request.input('p_ModuleName', sql.VarChar, "Spot Check Status");
-             request.input('p_ActivityName', sql.VarChar, body_data.activity[0].ACTIVITY_NAME);
-             request.input('p_ActivityID',sql.VarChar,body_data.spot_check_details.ACTIVITY_ID);
-             request.input('p_Responsible', sql.NVarChar, body_data.spot_check_details.RESPONSIBLE)
-             request.input('p_ResponsibleEmailId',sql.VarChar,body_data.spot_check_details.RESPONSIBLE_PERSON_EMAIL_ID);
-             request.input('p_MitsEmailId',sql.VarChar, body_data.spot_check_details.MITS_QUALITY_EMAIL_ID);
-             request.input('p_ExpectedDate', sql.DateTime ,new Date(body_data.spot_check_details.EXPECTED_CLOSURE_DATE));
-             request.input('p_Ntid',sql.VarChar,body_data.spot_check_details.NTID);
-             request.input('p_Status',sql.VarChar,body_data.spot_check_details.STATUS);
-             request.input('p_PassFail',sql.VarChar,body_data.spot_check_details.PASSFAIL);
-             request.input('p_Comments',sql.VarChar,body_data.spot_check_details.COMMENTS);
-             request.input('p_ProjectCode', sql.NVarChar, ProjectCode);
-             request.input('p_Theme', sql.NVarChar, body_data.spot_check_details.THEME);
-             request.input('p_ActualDate', sql.DateTime, new Date(body_data.spot_check_details.ACTUAL_CLOSURE_DATE));
-             request.input('p_ReminderActive', sql.Int,body_data.spot_check_details.REMINDER_ACTIVE)
-             request.input('p_UserName', sql.VarChar,body_data.spot_check_details.NTID)
-             request.input('p_TimeStamp', sql.Int, 0);
-          
-             
-             request.output('po_Retval',sql.Int)
-             request.output('po_UpdatedBy',sql.VarChar)
-             request.output('po_UpdatedTime',sql.DateTime)
-             request.output('po_Message',sql.VarChar)
-             // query to the database and get the records
-             request.execute("[dbo].[ARA_SP_ACTION_MinacsSpotCheckDetailsUpd]").then(function(recordSet) {
-                 if (recordSet == null || recordSet.length === 0)
-                     return;
-                
-                // res.send(recordset);
-                 data=recordSet.recordsets;
-                 res.send(JSON.stringify(data));
-                 console.log(data);
-                 sql.close();
-             }).catch(function (err) {         
-                 console.log(err);
-                 sql.close();
-             });
-         });
-
-});
-
-
-                                      /** Upload code */
+           /** Upload code */
 
 var storage = multer.diskStorage({ //multers disk storage settings
     destination: function (req, file, cb) {
@@ -339,80 +94,8 @@ app.post('/upload', function(req, res) {
     });
 });
 
-app.get('/api/RemindersData', function (req, res) {
-    // connect to your database
 
-    var Flag = req.param('Flag');
-
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_Flag', sql.VarChar, Flag)
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetAllQualityRemindersData]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-             
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              console.log(data);
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
-     
-  });
-
-  
-app.get('/api/upload/getProjectMaster', function (req, res) {
-    // connect to your database
-
-    var Flag = req.param('Flag');
-    var project_code = req.param('project_code');
-
-    sql.close();
-    sql.connect(config, function (err) {
-      
-          if (err) console.log(err);
-          // create Request object
-          var request = new sql.Request();
-          request.input('p_Flag', sql.VarChar, Flag)
-          request.input('p_ProjectCode', sql.VarChar, project_code)
-          request.input('p_TimeStamp', sql.Int,0)
-          
-          request.output('po_Retval',sql.Int)
-          request.output('po_UpdatedBy',sql.VarChar)
-          request.output('po_UpdatedTime',sql.DateTime)
-          request.output('po_Message',sql.VarChar)
-          // query to the database and get the records
-          request.execute("[dbo].[ARA_SP_DS_GetProjectMaster]").then(function(recordSet) {
-              if (recordSet == null || recordSet.length === 0)
-                  return;
-             
-             // res.send(recordset);
-              data=recordSet.recordsets;
-              res.send(JSON.stringify(data));
-              console.log(data);
-              sql.close();
-          }).catch(function (err) {         
-              console.log(err);
-              sql.close();
-          });
-      });
-     
-  });
-
-  app.post('/api/upload/UpdateQualityExcel',function(req,res){
+  app.post('/UpdateQualityExcel',function(req,res){
   
      UpdateQualityExcel_Flag = req.param('Flag');
     
@@ -468,7 +151,41 @@ app.get('/api/upload/getProjectMaster', function (req, res) {
  
   
 });
+app.get('/getProjectMaster', function (req, res) {
+    // connect to your database
 
+    var Flag = req.param('Flag');
+    var project_code = req.param('project_code');
+    sql.close();
+    sql.connect(config, function (err) {
+      
+          if (err) console.log(err);
+          // create Request object
+          var request = new sql.Request();
+          request.input('p_Flag', sql.VarChar, Flag)
+          request.input('p_ProjectCode', sql.VarChar, project_code)
+          request.input('p_TimeStamp', sql.Int,0)
+          
+          request.output('po_Retval',sql.Int)
+          request.output('po_UpdatedBy',sql.VarChar)
+          request.output('po_UpdatedTime',sql.DateTime)
+          request.output('po_Message',sql.VarChar)
+          // query to the database and get the records
+          request.execute("[dbo].[ARA_SP_DS_GetProjectMaster]").then(function(recordSet) {
+              if (recordSet == null || recordSet.length === 0)
+                  return;
+             // res.send(recordset);
+              data=recordSet.recordsets;
+              res.send(JSON.stringify(data));
+              console.log(data);
+              sql.close();
+          }).catch(function (err) {         
+              console.log(err);
+              sql.close();
+          });
+      });
+     
+  });
 function Postdata(UpdateQualityExcel_Flag, EXCEL_ROWS,i, cb) {
 
     // sql.close();
@@ -525,45 +242,6 @@ function Postdata(UpdateQualityExcel_Flag, EXCEL_ROWS,i, cb) {
     // });
 }
 
-
-                             //Authentication
-
-app.post('/api/authenticate', function (req, res) {
-
-      // connect to your database
-
-      console.log(req);
-
-      sql.close();
-      sql.connect(config, function (err) {
-        
-            if (err) console.log(err);
-            console.log(req.body.username);
-            // create Request object
-            var request = new sql.Request();
-            request.input('UserName', sql.VarChar, req.body.username)
-            request.input('Password', sql.VarChar, req.body.password)
-            
-            // query to the database and get the records
-            request.execute("[admin].[check_user]").then(function(recordSet) {
-                if (recordSet == null || recordSet.length === 0)
-                    return;
-               
-               // res.send(recordset);
-                data=recordSet.recordsets;
-    
-                
-                res.send(JSON.stringify(data));
-                console.log(data);
-                sql.close();
-            }).catch(function (err) {         
-                console.log(err);
-                sql.close();
-            });
-        });
-    
-     
-  });
 
 var server = app.listen(5000, function (req,res) {
 
