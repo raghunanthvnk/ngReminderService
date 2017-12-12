@@ -29,7 +29,7 @@ var sqlconfig = {
 //security 
 app.use(function(req, res, next) { //allow cross origin requests
     res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
-    res.header("Access-Control-Allow-Origin", "http://localhost:4200");
+    res.header("Access-Control-Allow-Origin", config.ClientApplicationUrl);
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Credentials", true);
     next();
@@ -73,6 +73,8 @@ app.use('/spotcheck', require('./app/routes/spotcheck')(sql,sqlconfig,jwt,config
 app.use('/qmExcelDownload', require('./app/routes/qmExcelDownload')(sql,sqlconfig,jwt,config));
 
 app.use('/qmExcelUpload',  require('./app/routes/qmExcelUpload')(sql,sqlconfig,jwt,config,async,XLSX));
+
+app.use('/pir',  require('./app/routes/pir')(sql,sqlconfig,jwt,config));
 
 // UNKNOWN ROUTES
 // app.use('*',function(req, res) {

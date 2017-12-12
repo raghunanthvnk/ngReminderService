@@ -6,6 +6,7 @@ config.web = {};
 config.port = 5000;
 config.secret='ilovescotchyscotch';
 config.domain='qa.cnxremindertool.com';
+config.ClientApplicationUrl='http://localhost:4200';
 
 config.host = 'fh-mmsts01';
 config.user = 'mmsdev.ts';
