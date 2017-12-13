@@ -1,10 +1,8 @@
-
+var nodemailer  = require('../../nodemailer.js')
 module.exports = function(sql,sqlconfig,jwt,config) {
-    
-    
+       
         var router = require('express').Router();
-    
-        // //Authentication
+            // //Authentication
         router.post('/UpdatePIRDetails', function (req, res) {
 
             var pir_details=req.body.pir_details;
@@ -37,7 +35,35 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                     else
                       {
                         data=recordSet.recordsets;
+                        if(req.body.mode=='ADD')
+                        {
+                             // setup html
+                            var contenthtml=
+                                 '<html>'
+                                +'<body style="background-color:#FFF">'
+                                +'<div style="color:#3c763d;;border-color:#d639c6;border-radius: 4px;border: 1px solid transparent;">' 
+                                +'<p>Hi Name,</p>'
+                                +'<p>Thank You For submitting PIR Request, we value your feedback.</p>'
+                                +'<p>Please visit http://remindertool.com/userdashboard/USERLayout/PIR to update the details with below ticket number.</p>'
+                                +'<p">PIR NO: RID </p>'
+                                +'<br />'
+                                +'<span >Thank you,</span>'
+                                +'<br />'
+                                +'<div><span>SEPG Team.</span></div>'
+                                +'<br />'
+                                +'<P>** This is an auto generated e-mail. Please do not reply.</P>'
+                                +'</div>'
+                                +'</body>'
+                                +'</html>'
+                            contenthtml= contenthtml.replace(/Name/g,req.body.pir_details.initiator_name)
+                            contenthtml= contenthtml.replace(/RID/g,data[0][0].pir_guid)
+                            nodemailer.SMTPMailSender(contenthtml,req.body.pir_details.email_address);
+                            res.send(JSON.stringify(data[0][0]));
+                          
+                        }
+                        else
                         res.send("Record Updated Successfully");
+                      
                       }
                     sql.close();
                   }).catch(function (err) {         
@@ -48,7 +74,7 @@ module.exports = function(sql,sqlconfig,jwt,config) {
         });
 
         
-        router.get('/GetAllPIRHistory', function (req, res) {
+        router.get('/GET_PIR_RECORDS_FORDT', function (req, res) {
          
             // connect to your database
             sql.close();
@@ -64,7 +90,7 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                 request.output('TOTALRECORDS',sql.Int)
               
                 // query to the database and get the records
-                request.execute("PIR.GET_PIRAllHISTORY_RECORDS").then(function(recordSet) {
+                request.execute("PIR.GET_PIR_RECORDS_FORDT").then(function(recordSet) {
                     if (recordSet == null || recordSet.length === 0)
                         return;
                     
@@ -80,6 +106,30 @@ module.exports = function(sql,sqlconfig,jwt,config) {
             });
             
         });
+
+        router.get('/GetAllPIRHistory', function (req, res) {
+            
+               // connect to your database
+               sql.close();
+               sql.connect(sqlconfig, function (err) {
+                   if (err) console.log(err);
+                   // create Request object
+                   var request = new sql.Request();
+                   // query to the database and get the records
+                   request.execute("PIR.GET_PIRAllHISTORY_RECORDS").then(function(recordSet) {
+                       if (recordSet == null || recordSet.length === 0)
+                           return;
+                       // res.send(recordset);
+                       data=recordSet.recordsets;
+                       res.send(JSON.stringify(data));
+                       sql.close();
+                   }).catch(function (err) {         
+                       console.log(err);
+                       sql.close();
+                   });
+               });
+               
+           });
 
         router.get('/GetPIRHistorybyID', function (req, res) {
           console.log(req.param('pir_guid'))
@@ -109,6 +159,10 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                 });
             });
             
+        });
+
+        router.post('/SendEmail',function(req,res){
+          nodemailer.SMTPMailSender();
         });
 
         return router;

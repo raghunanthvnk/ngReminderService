@@ -24,34 +24,38 @@ const nodemailer = require('nodemailer');
 
 // Generate test SMTP service account from ethereal.email
 // Only needed if you don't have a real mail account for testing
-exports.createTestAccount= function(){
-
-    // create reusable transporter object using the default SMTP transport
-    // let transporter = nodemailer.createTransport({
-    //     host: 'smtp.ethereal.email',
-    //     port: 587,
-    //     secure: false, // true for 465, false for other ports
-    //     auth: {
-    //         user: account.user, // generated ethereal user
-    //         pass: account.pass  // generated ethereal password
-    //     }
-    // });
-
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'koppuravuri.raghu@gmail.com',
-          pass: 'raghu456#'
+exports.SMTPMailSender= function(contenthtml,email_address ){
+   // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+        host: 'smtprelayfh.minacs.com',
+        port: 25,
+        secure: false // true for 465, false for other ports
+        // auth: {
+        //     user: account.user, // generated ethereal user
+        //     pass: account.pass  // generated ethereal password
+        // }
+        ,tls: {
+            rejectUnauthorized: false
         }
-      });
+    });
+
+    // var transporter = nodemailer.createTransport({
+    //     service: 'gmail',
+    //     auth: {
+    //       user: 'koppuravuri.raghu@gmail.com',
+    //       pass: 'raghu456#'
+    //     }
+    //   });
+    
+   
 
     // setup email data with unicode symbols
     let mailOptions = {
-        from: '"Concentrix Foo 👻" <no-reply@concentrix.com>', // sender address
-        to: 'raghunath.koppuravuri@concentrix.com', // list of receivers
-        subject: 'Hello ✔', // Subject line
-        text: 'Hello world?', // plain text body
-        html: '<b>Hello world?</b>' // html body
+        from: '"Concentrix" <no-reply@concentrix.com>', // sender address
+        to: email_address, // list of receivers
+        subject: 'Process Improvement Request', // Subject line
+        text: 'Process Improvement Request', // plain text body
+        html: contenthtml // html body
     };
 
     // send mail with defined transport object

@@ -79,7 +79,7 @@ module.exports = function(sql,sqlconfig,jwt,config,async,XLSX) {
                         // We're done looping in this function!
                         console.log(UpdateQualityExcel_res_data);
             
-                        nodemailer.createTestAccount();            
+                       // nodemailer.SMTPMailSender();            
                         res.send(UpdateQualityExcel_res_data);
                     });
                 })
