@@ -80,7 +80,12 @@ app.use('/pir',  require('./app/routes/pir')(sql,sqlconfig,jwt,config));
 // app.use('*',function(req, res) {
 //     res.status(404).json({error:"requested url: "+req.baseUrl+ ' is not Found'});
 // });
-
+app.get('/testapi', function (req, res) {
+    // connect to your database
+   
+   res.end("Test Works!");
+     
+  });
 
 // UNCAUGHT EXCEPTIONS
 process.on('uncaughtException', function(err) {

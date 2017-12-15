@@ -7,7 +7,7 @@ module.exports = function(sql,sqlconfig,jwt,config) {
 
             var pir_details=req.body.pir_details;
             var mode=req.body.mode;
-            
+            console.log(req.body);
             // connect to your database
             sql.close();
             sql.connect(sqlconfig, function (err) {
@@ -24,6 +24,7 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                 request.input('attachment_id', sql.NVarChar,req.body.pir_details.attachment_id)
                 request.input('pir_id', sql.Int,req.body.pir_details.pir_id)
                 request.input('mode', sql.VarChar,req.body.mode)
+                request.input('comments', sql.VarChar,req.body.pir_details.comments)
                 // request.output('response_pir_guid',sql.Int)
                 // query to the database and get the records
                 request.execute("PIR.RequestDetails_Save").then(function(recordSet) {
@@ -37,14 +38,14 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                         data=recordSet.recordsets;
                         if(req.body.mode=='ADD')
                         {
-                             // setup html
+                             // send confirmation mail to user
                             var contenthtml=
                                  '<html>'
                                 +'<body style="background-color:#FFF">'
                                 +'<div style="color:#3c763d;;border-color:#d639c6;border-radius: 4px;border: 1px solid transparent;">' 
                                 +'<p>Hi Name,</p>'
                                 +'<p>Thank You For submitting PIR Request, we value your feedback.</p>'
-                                +'<p>Please visit http://remindertool.com/userdashboard/USERLayout/PIR to update the details with below ticket number.</p>'
+                                +'<p>Please visit '+config.ClientApplicationUrl+'/userdashboard/USERLayout/PIR to update the details with below ticket number.</p>'
                                 +'<p">PIR NO: RID </p>'
                                 +'<br />'
                                 +'<span >Thank you,</span>'
@@ -58,11 +59,35 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                             contenthtml= contenthtml.replace(/Name/g,req.body.pir_details.initiator_name)
                             contenthtml= contenthtml.replace(/RID/g,data[0][0].pir_guid)
                             nodemailer.SMTPMailSender(contenthtml,req.body.pir_details.email_address);
-                            res.send(JSON.stringify(data[0][0]));
+                           
                           
+                              // send notification mail to SEPG team
+                              var contenthtml=
+                              '<html>'
+                             +'<body style="background-color:#FFF">'
+                             +'<div style="color:#3c763d;;border-color:#d639c6;border-radius: 4px;border: 1px solid transparent;">' 
+                             +'<p>Hi Team,</p>'
+                             +'<p>Name has submitted new PIR Request,</p>'
+                             +'<p>Please visit '+config.ClientApplicationUrl+'/sepgdashboard/SEPGLayout/PIRModification to update the details with below ticket number.</p>'
+                             +'<p">PIR NO: RID </p>'
+                             +'<br />'
+                             +'<span >Thank you,</span>'
+                             +'<br />'
+                             +'<div><span>SEPG Team.</span></div>'
+                             +'<br />'
+                             +'<P>** This is an auto generated e-mail. Please do not reply.</P>'
+                             +'</div>'
+                             +'</body>'
+                             +'</html>'
+                              contenthtml= contenthtml.replace(/Name/g,req.body.pir_details.initiator_name)
+                              contenthtml= contenthtml.replace(/RID/g,data[0][0].pir_guid)
+                              nodemailer.SMTPMailSender(contenthtml,config.SEPG_Mail_ID);
+
+                              res.send(JSON.stringify(data[0][0]));
                         }
-                        else
-                        res.send("Record Updated Successfully");
+                        else{
+                        res.send(JSON.stringify(data));
+                        }
                       
                       }
                     sql.close();
@@ -153,7 +178,8 @@ module.exports = function(sql,sqlconfig,jwt,config) {
                     res.send(JSON.stringify(data));
                     console.log(data);
                     sql.close();
-                }).catch(function (err) {         
+                }).catch(function (err) {    
+                    res.send(JSON.stringify("Please Enter Correct ID"));     
                     console.log(err);
                     sql.close();
                 });

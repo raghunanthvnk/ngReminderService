@@ -44,5 +44,12 @@ module.exports = function(sql,sqlconfig,jwt,config) {
             });
         });
     });
+
+    
+    // //Authentication
+    router.get('/Windowsauthenticate', function (req, res) {
+        // connect to your database
+       console.log(req)
+    });
     return router;
 }
