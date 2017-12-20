@@ -25,6 +25,7 @@ var sqlconfig = {
     user: config.user,
     password:  config.password,
 };
+var transform= require('./app/routes/isvalidlogin.js')
 
 //security 
 app.use(function(req, res, next) { //allow cross origin requests
@@ -49,6 +50,37 @@ app.use(express.static(__dirname));
 app.use(expressSanitizer());
 //app.use(cors());
 
+// Authenticate user withWindows Authentication and store username for all requests
+global.domain; 
+global.username;
+
+app.use(function (req, res, next) {
+    
+        var nodeSSPI = require('node-sspi')
+        var nodeSSPIObj = new nodeSSPI({
+          retrieveGroups: true
+        })
+        nodeSSPIObj.authenticate(req, res, function(err){
+          res.finished || next()
+        })
+})
+app.use(function(req, res, next) {
+    global.domain=req.connection.user.split("\\")[0]
+    global.username=req.connection.user.split("\\")[1]
+    var out =
+      'Hello ' +
+      req.connection.user +
+      '! Your sid is ' +
+      req.connection.userSid +
+      ' and you belong to following groups:<br/><ul>'
+        if (req.connection.userGroups) {
+        for (var i in req.connection.userGroups) {
+            out += '<li>' + req.connection.userGroups[i] + '</li><br/>\n'
+        }
+        }
+    out += '</ul>'
+    next();
+})
 
    // logging
 // var mkdirp = require('mkdirp');
@@ -62,11 +94,17 @@ app.get('/',function(req,res){
     res.sendFile(__dirname + "/client/index.html");
 });
 
-// Basic Authentication
-//require('./app/middleware/baseAuth')(app,express);
 
  //Routes
 app.use('/auth', require('./app/routes/auth')(sql,sqlconfig,jwt,config));
+
+app.get('/testapi', function (req, res) {
+    // connect to your database
+   res.end("Test Works!");
+  });
+
+// Basic Authentication - Verify JSON Token for below routes
+//require('./app/middleware/baseAuth')(app,express);
 
 app.use('/spotcheck', require('./app/routes/spotcheck')(sql,sqlconfig,jwt,config));
 
@@ -80,12 +118,8 @@ app.use('/pir',  require('./app/routes/pir')(sql,sqlconfig,jwt,config));
 // app.use('*',function(req, res) {
 //     res.status(404).json({error:"requested url: "+req.baseUrl+ ' is not Found'});
 // });
-app.get('/testapi', function (req, res) {
-    // connect to your database
-   
-   res.end("Test Works!");
-     
-  });
+
+
 
 // UNCAUGHT EXCEPTIONS
 process.on('uncaughtException', function(err) {
